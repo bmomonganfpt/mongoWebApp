@@ -39,17 +39,19 @@ public class HomeController {
 		return employee;
 	}
 
-	@RequestMapping(value = "/update")
+	@RequestMapping(value = "/update", method = RequestMethod.POST)
 	@ResponseBody
 	public Employee updateEmployee(@RequestParam("id") String id, @RequestParam("firstName") String firstName,
 			@RequestParam("lastName") String lastName, @RequestParam("age") String age,
 			@RequestParam("department") String department) {
+		System.out.println("test");
 		Employee employee = repository.findOne(id);
 		employee.setFirstName(firstName);
 		employee.setLastName(lastName);
 		employee.setAge(Integer.parseInt(age));
 		employee.setDepartment(department);
 		repository.save(employee);
+		System.out.println("test");
 		return employee;
 	}
 
@@ -62,24 +64,6 @@ public class HomeController {
 		repository.save(new Employee("Bob", "Smith", 25, "HR"));
 		List<Employee> listEmployees = repository.findAll();
 		httpSession.setAttribute("listEmployees", listEmployees);
-
 		return "home";
 	}
 }
-
-/*
- * // fetch all customers System.out.println("Customers found with findAll():");
- * System.out.println("-------------------------------"); for (Customer customer
- * : repository.findAll()) { System.out.println(customer); }
- * System.out.println();
- * 
- * // fetch an individual customer System.out.println(
- * "Customer found with findByFirstName('Alice'):");
- * System.out.println("--------------------------------");
- * System.out.println(repository.findByFirstName("Alice"));
- * 
- * System.out.println("Customers found with findByLastName('Smith'):");
- * System.out.println("--------------------------------"); for (Customer
- * customer : repository.findByLastName("Smith")) {
- * System.out.println(customer); }
- */

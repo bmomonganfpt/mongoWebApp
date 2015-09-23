@@ -25,20 +25,21 @@ $(document).ready(function () {
 			var output = "";
 			output += "<tr id='row";
 			output += employee.id;
-			output += "'><td>";
+			output += "'><td><input type='text' style='border: none;' value='";
 			output += employee.firstName;
-			output += "</td><td>";
+			output += "'/></td><td><input type='text' style='border: none;' value='";
 			output += employee.lastName;
-			output += "</td><td>";
+			output += "'/></td><td><input type='text' style='border: none;' value='";
 			output += employee.age;
-			output += "</td><td>"
+			output += "'/></td><td><input type='text' style='border: none;' value='"
 			output += employee.department;
-			output += "</td><td><button id='delete"
+			output += "'/></td><td><button id='delete"
 			output += employee.id;
 			output += "' class='btn btn-primary btn-xs'>";
-			output += "Delete";
-			output += "</button></td>";
-			output += "</tr>";
+			output += "Delete</button> <button id='update"
+			output += employee.id;
+			output += "' class='btn btn-primary btn-xs'>";
+			output += "Update</td> </tr>";			
 
 			$("#table").find('tbody').append(output);
 		});
@@ -61,6 +62,20 @@ $(document).ready(function () {
 			show : false
 		});
 		$("#addModal").modal('show');
+	});
+
+	$("button[id^='update']").click(function() {
+		var update = $(this).attr('id').substring(6);
+		$.post("update", {
+			id : update,
+			firstName : $("#firstName" + update).val(),
+			lastName : $("#lastName" + update).val(),
+			age : $("#age" + update).val(),
+			department : $("#department" + update).val()
+		},
+
+		function (employee) {
+		});
 	});
 });
 </script>
@@ -98,10 +113,10 @@ $(document).ready(function () {
 			<tbody>
 				<c:forEach var="employee" items="${listEmployees}">
 					<tr id="row${employee.id}">
-						<td>${employee.firstName} </td>
-						<td>${employee.lastName}</td>
-						<td>${employee.age}</td>
-						<td>${employee.department}</td>
+						<td> <input type="text" style="border: none;" id="firstName${employee.id}" value="${employee.firstName}"/></td>
+						<td> <input type="text" style="border: none;" id="lastName${employee.id}" value="${employee.lastName}"/></td>
+						<td> <input type="text" style="border: none;" id="age${employee.id}" value="${employee.age}"/></td>
+						<td> <input type="text" style="border: none;" id="department${employee.id}" value="${employee.department}"/></td>
 						<td><button id="delete${employee.id}" class="btn btn-primary btn-xs">Delete</button>
 							<button id="update${employee.id}" class="btn btn-primary btn-xs">Update</button>
 						</td>
