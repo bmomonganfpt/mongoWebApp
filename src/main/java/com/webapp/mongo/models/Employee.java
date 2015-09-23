@@ -6,7 +6,6 @@ public class Employee {
 
 	@Id
 	private String id;
-
 	private String firstName;
 	private String lastName;
 	private int age;
@@ -16,11 +15,18 @@ public class Employee {
 	}
 
 	public Employee(String firstName, String lastName, int age, String department) {
-		super();
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.age = age;
 		this.department = department;
+	}
+	
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public String getFirstName() {

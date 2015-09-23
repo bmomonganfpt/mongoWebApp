@@ -7,37 +7,55 @@
 <title>CRUD MongoDB</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet"
-	href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script
-	src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
 <script>
 $(document).ready(function () {
-	function add() {
-		$.post("", {
-			text : $('#search').val()
+	$("#submit").click(function(){
+		$.post("add", {
+			firstName : $('#firstName').val(),
+			lastName : $('#lastName').val(),
+			age : $('#age').val(),
+			department : $('#department').val()
 		},
 		
-		function (data) {
-			$('#result').text('');
-			var output = '<ul class="searchresults" style="text-align: center">';
-			$.each(data, function (key,	val) {
-				output += '<li>';
-				output += '<a style="text-decoration: none; color: red; font-family: Arial" href="/user/' + val.id + '">'
-				 + '<h2>'
-				 + val.name
-				 + '</h2>'
-				'</a>';
-				output += '</li>';
-			});
-			output += '</ul>';
-			$('#result').append(output);
+		function (employee) {
+			var output = "";
+			output += "<tr id='row";
+			output += employee.id;
+			output += "'><td>";
+			output += employee.firstName;
+			output += "</td><td>";
+			output += employee.lastName;
+			output += "</td><td>";
+			output += employee.age;
+			output += "</td><td>"
+			output += employee.department;
+			output += "</td><td><button id='delete"
+			output += employee.id;
+			output += "' class='btn btn-primary btn-xs'>";
+			output += "Delete";
+			output += "</button></td>";
+			output += "</tr>";
+
+			$("#table").find('tbody').append(output);
+		});
+	});
+
+	$("#table").on("click", "tr button[id^='delete']", del);
+
+	function del(event){
+		var thisId = $(this).attr('id').substring(6);		
+		$.post("delete", {
+			id : thisId
+		},		
+		function (employee) {
+			$("#row" + thisId).remove();	
 		});
 	}
-	
+
 	$("#add").click(function () {
 		$("#addModal").modal({
 			show : false
@@ -64,26 +82,29 @@ $(document).ready(function () {
 	</nav>
 
 	<div class="container">
-
 		<a href="#" id="add" class="btn btn-primary btn-sm"> <span
 			class="glyphicon glyphicon-plus"></span> New Entry
 		</a> <br> <br>
-		<table class="table table-bordered">
+		<table id="table" class="table table-bordered">
 			<thead>
 				<tr>
 					<th><strong>First Name</strong></th>
 					<th><strong>Last Name</strong></th>
 					<th><strong>Age</strong></th>
 					<th><strong>Department</strong></th>
+					<th><strong>Action</strong></th>
 				</tr>
 			</thead>
 			<tbody>
 				<c:forEach var="employee" items="${listEmployees}">
-					<tr>
-						<td>${employee.firstName}</td>
+					<tr id="row${employee.id}">
+						<td>${employee.firstName} </td>
 						<td>${employee.lastName}</td>
 						<td>${employee.age}</td>
 						<td>${employee.department}</td>
+						<td><button id="delete${employee.id}" class="btn btn-primary btn-xs">Delete</button>
+							<button id="update${employee.id}" class="btn btn-primary btn-xs">Update</button>
+						</td>
 					</tr>
 				</c:forEach>
 			</tbody>
@@ -101,41 +122,34 @@ $(document).ready(function () {
 					<h4 class="modal-title">Employee Details</h4>
 				</div>
 				<div class="modal-body">
-					<form:form role="form" modelAttribute="employee">
-					
+					<form role="form">
 						<div class="form-group">
-							<form:label path="firstName">First Name</form:label>
-							<form:input cssClass="form-control" path="firstName"  />
+						 <input type="text"
+								class="form-control" id="firstName" placeholder="First Name">
 						</div>
-						
 						<div class="form-group">
-							<form:label path="lastName">Last Name</form:label>
-							<form:input cssClass="form-control" path="firstName"  />
+						 <input type="text"
+								class="form-control" id="lastName" placeholder="Last Name">
 						</div>
-						
+
 						<div class="form-group">
-							<form:label path="age">Age</form:label>
-							<form:input cssClass="form-control" path="firstName"  />
+							<input type="text"
+								class="form-control" id="age" placeholder="Age">
 						</div>
-						
-						<div class="form-group">
-							<form:label path="department">Department</form:label>
-							<form:select cssClass="form-control" path="department">
-								<form:option value="HR">HR</form:option>
-								<form:option value="IT">IT</form:option>
-								<form:option value="Dev">Devs</form:option>
-								<form:option value="Staff">Staff</form:option>
-							</form:select>
-						</div>
-					</form:form>
+						<select class="form-control" id="department" >
+							<option value='' disabled selected style='display:none;'>Department</option>
+						   <option value='HR'>HR</option>
+						   <option value='IT'>IT</option>
+						   <option value='Dev'>Devs</option>
+						   <option value='Staff'>Staff</option>
+						</select>			
+					</form>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal" onkeyup="add();">Submit</button>
+					<button class="btn btn-default" data-dismiss="modal" id="submit" >Submit</button>
 				</div>
 			</div>
-
 		</div>
 	</div>
-
 </body>
 </html>
