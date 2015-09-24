@@ -5,6 +5,8 @@ import java.util.List;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.webapp.mongo.models.Employee;
+import com.webapp.mongo.models.websocket.AddRow;
+import com.webapp.mongo.models.websocket.Greeting;
 import com.webapp.mongo.repositories.EmployeeRepository;
 
 @Controller
@@ -44,7 +48,6 @@ public class HomeController {
 	public Employee updateEmployee(@RequestParam("id") String id, @RequestParam("firstName") String firstName,
 			@RequestParam("lastName") String lastName, @RequestParam("age") String age,
 			@RequestParam("department") String department) {
-		System.out.println("test");
 		Employee employee = repository.findOne(id);
 		employee.setFirstName(firstName);
 		employee.setLastName(lastName);
@@ -58,12 +61,20 @@ public class HomeController {
 	@RequestMapping(value = "/home")
 	public String home() {
 
-		repository.deleteAll();
-		// save a couple of customers
-		repository.save(new Employee("Alice", "Wonderloud", 20, "Dev"));
-		repository.save(new Employee("Bob", "Smith", 25, "HR"));
 		List<Employee> listEmployees = repository.findAll();
 		httpSession.setAttribute("listEmployees", listEmployees);
 		return "home";
+	}
+
+	///// WEBSOCKET
+
+	@MessageMapping("/hello")
+	@SendTo("/topic/greetings")
+	public Greeting greeting(AddRow row) throws Exception {
+		Thread.sleep(3000);
+		Employee employee = repository.save(
+				new Employee(row.getFirstName(), row.getLastName(), 
+						Integer.parseInt(row.getAge()), row.getDepartment()));
+		return new Greeting(employee.toString());
 	}
 }

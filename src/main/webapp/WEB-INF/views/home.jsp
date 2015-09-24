@@ -10,79 +10,12 @@
 <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="lib/sockjs-0.3.min.js"></script>
+<script src="lib/stomp.min.js"></script>
 
-<script>
-$(document).ready(function () {
-	$("#submit").click(function(){
-		$.post("add", {
-			firstName : $('#firstName').val(),
-			lastName : $('#lastName').val(),
-			age : $('#age').val(),
-			department : $('#department').val()
-		},
-		
-		function (employee) {
-			var output = "";
-			output += "<tr id='row";
-			output += employee.id;
-			output += "'><td><input type='text' style='border: none;' value='";
-			output += employee.firstName;
-			output += "'/></td><td><input type='text' style='border: none;' value='";
-			output += employee.lastName;
-			output += "'/></td><td><input type='text' style='border: none;' value='";
-			output += employee.age;
-			output += "'/></td><td><input type='text' style='border: none;' value='"
-			output += employee.department;
-			output += "'/></td><td><button id='delete"
-			output += employee.id;
-			output += "' class='btn btn-primary btn-xs'>";
-			output += "Delete</button> <button id='update"
-			output += employee.id;
-			output += "' class='btn btn-primary btn-xs'>";
-			output += "Update</td> </tr>";			
-
-			$("#table").find('tbody').append(output);
-		});
-	});
-
-	$("#table").on("click", "tr button[id^='delete']", del);
-
-	function del(event){
-		var thisId = $(this).attr('id').substring(6);		
-		$.post("delete", {
-			id : thisId
-		},		
-		function (employee) {
-			$("#row" + thisId).remove();	
-		});
-	}
-
-	$("#add").click(function () {
-		$("#addModal").modal({
-			show : false
-		});
-		$("#addModal").modal('show');
-	});
-
-	$("button[id^='update']").click(function() {
-		var update = $(this).attr('id').substring(6);
-		$.post("update", {
-			id : update,
-			firstName : $("#firstName" + update).val(),
-			lastName : $("#lastName" + update).val(),
-			age : $("#age" + update).val(),
-			department : $("#department" + update).val()
-		},
-
-		function (employee) {
-		});
-	});
-});
-</script>
 
 </head>
 <body>
-
 	<nav class="navbar navbar-inverse">
 		<div class="container-fluid">
 			<div class="navbar-header">
@@ -97,6 +30,7 @@ $(document).ready(function () {
 	</nav>
 
 	<div class="container">
+	
 		<a href="#" id="add" class="btn btn-primary btn-sm"> <span
 			class="glyphicon glyphicon-plus"></span> New Entry
 		</a> <br> <br>
@@ -167,4 +101,64 @@ $(document).ready(function () {
 		</div>
 	</div>
 </body>
+
+
+<script>
+$(document).ready(function () {
+	var stompClient = null;
+	var socket = new SockJS('/hello');
+	stompClient = Stomp.over(socket);
+	stompClient.connect({}, function(frame) {
+		stompClient.subscribe('/topic/greetings', function(greeting){
+			showGreeting(JSON.parse(greeting.body).content);
+		});
+	});
+	
+	function showGreeting(message) {
+		$("#table").find('tbody').append(message);
+	}
+	
+	$("#submit").click(function(){
+		var firstName = $('#firstName').val();
+		var lastName = $('#lastName').val();
+		var age = $('#age').val();
+		var department = $('#department').val();
+		stompClient.send("/app/hello", {}, JSON.stringify({ 'firstName': firstName, 'lastName' : lastName, 'age' : age , 'department' : department  }));
+	});
+    
+	$("#table").on("click", "tr button[id^='delete']", del);
+	$("#table").on("click", "tr button[id^='update']", update);
+
+	function del(event){
+		var thisId = $(this).attr('id').substring(6);		
+		$.post("delete", {
+			id : thisId
+		},		
+		function (employee) {
+			$("#row" + thisId).remove();	
+		});
+	}
+	
+	function update(event){
+		var update = $(this).attr('id').substring(6);
+		$.post("update", {
+			id : update,
+			firstName : $("#firstName" + update).val(),
+			lastName : $("#lastName" + update).val(),
+			age : $("#age" + update).val(),
+			department : $("#department" + update).val()
+		},
+		function (employee) {
+		});	
+	}
+
+	$("#add").click(function () {
+		alert('hello');
+		$("#addModal").modal({
+			show : false
+		});
+		$("#addModal").modal('show');
+	});
+});
+</script>
 </html>
