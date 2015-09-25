@@ -1,4 +1,4 @@
-package com.webapp.mongo;
+package com.webapp.mongo.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

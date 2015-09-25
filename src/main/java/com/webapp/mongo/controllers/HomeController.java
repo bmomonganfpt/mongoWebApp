@@ -71,7 +71,7 @@ public class HomeController {
 	@MessageMapping("/hello")
 	@SendTo("/topic/greetings")
 	public Greeting greeting(AddRow row) throws Exception {
-		Thread.sleep(3000);
+		//Thread.sleep(3000);
 		Employee employee = repository.save(
 				new Employee(row.getFirstName(), row.getLastName(), 
 						Integer.parseInt(row.getAge()), row.getDepartment()));
