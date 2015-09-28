@@ -2,8 +2,6 @@ package com.webapp.mongo.controllers;
 
 import java.util.List;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -14,8 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.webapp.mongo.models.Employee;
-import com.webapp.mongo.models.websocket.AddRow;
-import com.webapp.mongo.models.websocket.Greeting;
+import com.webapp.mongo.models.websocket.Row;
 import com.webapp.mongo.repositories.EmployeeRepository;
 
 @Controller
@@ -24,13 +21,21 @@ public class HomeController {
 	@Autowired
 	private EmployeeRepository repository;
 
-	@Autowired
-	HttpSession httpSession;
+	@RequestMapping("/home")
+	public String home() {
+		return "home";
+	}
+	
+	@RequestMapping("/read")
+	@ResponseBody
+	public List<Employee> onloadTable(){
+		return repository.findAll();
+	}	
 
 	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	@ResponseBody
 	public Employee addEmployee(@RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
-			@RequestParam("age") String age, @RequestParam("department") String department) {
+			@RequestParam("age") String age, @RequestParam("department") String department) throws Exception {
 		Employee employee = repository.save(new Employee(firstName, lastName, Integer.parseInt(age), department));
 		return employee;
 	}
@@ -54,27 +59,13 @@ public class HomeController {
 		employee.setAge(Integer.parseInt(age));
 		employee.setDepartment(department);
 		repository.save(employee);
-		System.out.println("test");
 		return employee;
 	}
-
-	@RequestMapping(value = "/home")
-	public String home() {
-
-		List<Employee> listEmployees = repository.findAll();
-		httpSession.setAttribute("listEmployees", listEmployees);
-		return "home";
-	}
-
-	///// WEBSOCKET
-
+	
+	/// WEBSOCKET
 	@MessageMapping("/hello")
 	@SendTo("/topic/greetings")
-	public Greeting greeting(AddRow row) throws Exception {
-		//Thread.sleep(3000);
-		Employee employee = repository.save(
-				new Employee(row.getFirstName(), row.getLastName(), 
-						Integer.parseInt(row.getAge()), row.getDepartment()));
-		return new Greeting(employee.toString());
+	public Row greeting(Row row) throws Exception {
+		return row;
 	}
 }

@@ -60,27 +60,4 @@ public class Employee {
 	public void setDepartment(String department) {
 		this.department = department;
 	}
-
-	@Override
-	public String toString() {		
-		StringBuilder output = new StringBuilder();
-		output.append("<tr id='row");
-		output.append(id);
-		output.append("'><td><input type='text' style='border: none;' value='");
-		output.append(firstName);
-		output.append("'/></td><td><input type='text' style='border: none;' value='");
-		output.append(lastName);
-		output.append("'/></td><td><input type='text' style='border: none;' value='");
-		output.append(age);
-		output.append("'/></td><td><input type='text' style='border: none;' value='");
-		output.append(department);
-		output.append("'/></td><td><button id='delete");
-		output.append(id);
-		output.append("' class='btn btn-primary btn-xs'>");
-		output.append("Delete</button> <button id='update");
-		output.append(id);
-		output.append("' class='btn btn-primary btn-xs'>");
-		output.append("Update</td> </tr>");
-		return output.toString();
-	}
 }

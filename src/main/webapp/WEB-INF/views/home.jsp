@@ -34,28 +34,18 @@
 		<a href="#" id="add" class="btn btn-primary btn-sm"> <span
 			class="glyphicon glyphicon-plus"></span> New Entry
 		</a> <br> <br>
-		<table id="table" class="table table-bordered">
+		<table id="table" class="table table-bordered table-fixed">
 			<thead>
 				<tr>
-					<th><strong>First Name</strong></th>
-					<th><strong>Last Name</strong></th>
-					<th><strong>Age</strong></th>
-					<th><strong>Department</strong></th>
-					<th><strong>Action</strong></th>
+					<th class="col-md-2" style="text-align: center;"><strong>First Name</strong></th>
+					<th class="col-md-2" style="text-align: center;"><strong>Last Name</strong></th>
+					<th class="col-md-2" style="text-align: center;"><strong>Age</strong></th>
+					<th class="col-md-2" style="text-align: center;"><strong>Department</strong></th>
+					<th class="col-md-2" style="text-align: center;"><strong>Action</strong></th>
 				</tr>
 			</thead>
 			<tbody>
-				<c:forEach var="employee" items="${listEmployees}">
-					<tr id="row${employee.id}">
-						<td> <input type="text" style="border: none;" id="firstName${employee.id}" value="${employee.firstName}"/></td>
-						<td> <input type="text" style="border: none;" id="lastName${employee.id}" value="${employee.lastName}"/></td>
-						<td> <input type="text" style="border: none;" id="age${employee.id}" value="${employee.age}"/></td>
-						<td> <input type="text" style="border: none;" id="department${employee.id}" value="${employee.department}"/></td>
-						<td><button id="delete${employee.id}" class="btn btn-primary btn-xs">Delete</button>
-							<button id="update${employee.id}" class="btn btn-primary btn-xs">Update</button>
-						</td>
-					</tr>
-				</c:forEach>
+			
 			</tbody>
 		</table>
 	</div>
@@ -105,37 +95,64 @@
 
 <script>
 $(document).ready(function () {
+	loadTable();
+
 	var stompClient = null;
 	var socket = new SockJS('/hello');
 	stompClient = Stomp.over(socket);
 	stompClient.connect({}, function(frame) {
-		stompClient.subscribe('/topic/greetings', function(greeting){
-			showGreeting(JSON.parse(greeting.body).content);
+		stompClient.subscribe('/topic/greetings', function(result){
+			var rowResult = JSON.parse(result.body);
+			if (rowResult.status == "delete") {
+				$("#row" + rowResult.id).fadeIn(30000, function(){
+					$(this).remove();
+				});				
+			};
+
+			if (rowResult.status == "add") {
+				row(rowResult);
+			};
+			if (rowResult.status == "update"){
+				$("tbody").html("");
+				loadTable();
+			}
 		});
 	});
-	
-	function showGreeting(message) {
-		$("#table").find('tbody').append(message);
+
+	function websocket(status, id, firstName, lastName, age, department){
+		stompClient.send("/app/hello", {}, JSON.stringify({'status' : status, 'id' : id, 'firstName': firstName, 'lastName' : lastName, 'age' : age , 'department' : department}));
+	}
+
+	function loadTable(event){
+		$.post("read", function (result) {
+			$.each(result, function(id, employee) {
+	    		row(employee);
+			});
+		});
 	}
 	
 	$("#submit").click(function(){
-		var firstName = $('#firstName').val();
-		var lastName = $('#lastName').val();
-		var age = $('#age').val();
-		var department = $('#department').val();
-		stompClient.send("/app/hello", {}, JSON.stringify({ 'firstName': firstName, 'lastName' : lastName, 'age' : age , 'department' : department  }));
-	});
+		$.post("add", {
+			firstName : $('#firstName').val(),
+			lastName : $('#lastName').val(),
+			age : $('#age').val(),
+			department : $('#department').val()
+ 		},
+		function (employee) {
+			websocket("add", employee.id, employee.firstName, employee.lastName, employee.age, employee.department);
+		});
+	});	
     
 	$("#table").on("click", "tr button[id^='delete']", del);
 	$("#table").on("click", "tr button[id^='update']", update);
 
 	function del(event){
-		var thisId = $(this).attr('id').substring(6);		
+		var delId = $(this).attr('id').substring(6);		
 		$.post("delete", {
-			id : thisId
+			id : delId
 		},		
 		function (employee) {
-			$("#row" + thisId).remove();	
+			websocket("delete", employee.id, employee.firstName, employee.lastName, employee.age, employee.department);
 		});
 	}
 	
@@ -149,7 +166,37 @@ $(document).ready(function () {
 			department : $("#department" + update).val()
 		},
 		function (employee) {
+			websocket("update", employee.id, employee.firstName, employee.lastName, employee.age, employee.department);
 		});	
+	}
+
+	function row(employee){
+		var output = "";
+		output += "<tr id='row";
+		output += employee.id;
+		output += "'><td><input type='text' style='border: none; text-align: center;' id='firstName";
+		output += employee.id;
+		output += "' value='";
+		output += employee.firstName;
+		output += "'/></td><td><input type='text' style='border: none; text-align: center;' id='lastName"
+		output += employee.id;
+		output += "' value='";
+		output += employee.lastName;
+		output += "'/></td><td><input type='text' style='border: none; text-align: center;' id='age"
+		output += employee.id;
+		output += "' value='";
+		output += employee.age;
+		output += "'/></td><td><input type='text' style='border: none; text-align: center;' id='department"
+		output += employee.id;
+		output += "' value='";
+		output += employee.department;
+		output += "'/></td><td><button id='delete"
+		output += employee.id;
+		output += "' class='btn btn-primary btn-xs'>Delete</button> <button id='update";
+		output += employee.id;
+		output += "' class='btn btn-primary btn-xs'>";
+		output += "Update</td> </tr>";
+		$("#table").find('tbody').append(output);
 	}
 
 	$("#add").click(function () {
